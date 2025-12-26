@@ -1,0 +1,55 @@
+---
+/**
+ * Tab navigation component using radio input technique
+ *
+ * This component implements accessible tabs without JavaScript by leveraging
+ * radio input state and CSS :checked selectors. Each tab panel is revealed
+ * when its corresponding radio input is checked.
+ *
+ * Slots:
+ * - file-upload: Content for file upload tab
+ * - url-import: Content for URL import tab
+ * - paste-code: Content for paste SVG code tab
+ *
+ * @component
+ * @example
+ * <InputTabs>
+ *   <FileUploadTab slot="file-upload" />
+ *   <UrlImportTab slot="url-import" />
+ *   <PasteCodeTab slot="paste-code" />
+ * </InputTabs>
+ */
+---
+
+<div class="tabs-container">
+    <!-- Hidden radio inputs for state management -->
+    <input type="radio" name="input-method" id="tab-file" class="tab-radio" checked />
+    <input type="radio" name="input-method" id="tab-url" class="tab-radio" />
+    <input type="radio" name="input-method" id="tab-paste" class="tab-radio" />
+
+    <!-- Tab navigation buttons -->
+    <div class="tab-navigation">
+        <label for="tab-file" class="tab-button" role="tab" aria-controls="panel-file">
+            📁 Upload File
+        </label>
+        <label for="tab-url" class="tab-button" role="tab" aria-controls="panel-url">
+            🔗 Import URL
+        </label>
+        <label for="tab-paste" class="tab-button" role="tab" aria-controls="panel-paste">
+            📋 Paste Code
+        </label>
+    </div>
+
+    <!-- Tab panels -->
+    <div class="tab-panels" role="tabpanel">
+        <div class="tab-panel" id="panel-file">
+            <slot name="file-upload" />
+        </div>
+        <div class="tab-panel" id="panel-url">
+            <slot name="url-import" />
+        </div>
+        <div class="tab-panel" id="panel-paste">
+            <slot name="paste-code" />
+        </div>
+    </div>
+</div>

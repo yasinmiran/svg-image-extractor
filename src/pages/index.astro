@@ -1,16 +1,279 @@
 ---
+/**
+ * SVG Image Extractor - Main Page
+ *
+ * This page orchestrates all components and provides the main
+ * functionality for extracting images from SVG files.
+ */
 
+import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import InputTabs from '../components/InputTabs.astro';
+import FileUploadTab from '../components/FileUploadTab.astro';
+import UrlImportTab from '../components/UrlImportTab.astro';
+import PasteCodeTab from '../components/PasteCodeTab.astro';
+import ImageGrid from '../components/ImageGrid.astro';
+import SEOContent from '../components/SEOContent.astro';
+import Dialog from '../components/Dialog.astro';
+import Footer from '../components/Footer.astro';
+
+const title = "SVG Image Extractor - Extract PNG & JPEG from SVG Files";
+const description = "Free online tool to extract embedded PNG, JPEG, and other images from SVG files. Upload SVG, import from URL, or paste code to download all images instantly.";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={title} description={description}>
+    <main class="container mx-auto px-4 py-12 max-w-4xl">
+        <Header />
+
+        <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+            <InputTabs>
+                <FileUploadTab slot="file-upload" />
+                <UrlImportTab slot="url-import" />
+                <PasteCodeTab slot="paste-code" />
+            </InputTabs>
+
+            <button
+                id="extractBtn"
+                class="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+                Extract Images
+            </button>
+        </div>
+
+        <ImageGrid />
+
+        <SEOContent />
+    </main>
+
+    <Footer />
+
+    <Dialog />
+</BaseLayout>
+
+<script>
+    // Import all utility functions
+    import { extractImages } from '../lib/svgExtractor.js';
+    import { fetchSvgFromUrl } from '../lib/urlFetcher.js';
+    import { readSvgFile } from '../lib/fileReader.js';
+    import { downloadSingleImage, downloadBlob } from '../lib/imageDownloader.js';
+    import { generateZip } from '../lib/zipGenerator.js';
+    import { handleError, displayError, displaySuccess } from '../lib/errorHandler.js';
+    import { ERROR_MESSAGES, SUCCESS_MESSAGES, INFO_MESSAGES } from '../constants/messages.js';
+
+    // Get DOM elements
+    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+    const urlInput = document.getElementById('urlInput') as HTMLInputElement;
+    const svgInput = document.getElementById('svgInput') as HTMLTextAreaElement;
+    const extractBtn = document.getElementById('extractBtn') as HTMLButtonElement;
+    const results = document.getElementById('results') as HTMLElement;
+    const imageGrid = document.getElementById('imageGrid') as HTMLElement;
+    const downloadAllBtn = document.getElementById('downloadAllBtn') as HTMLButtonElement;
+    const loadingIndicator = document.getElementById('loadingIndicator') as HTMLElement;
+    const noImagesMessage = document.getElementById('noImagesMessage') as HTMLElement;
+
+    // Store extracted images
+    let currentImages: any[] = [];
+
+    /**
+     * Gets SVG content from the active input method
+     */
+    async function getSvgContent(): Promise<string> {
+        // Try paste/code input first
+        const pastedCode = svgInput.value.trim();
+        if (pastedCode) {
+            return pastedCode;
+        }
+
+        // Try URL input
+        const url = urlInput.value.trim();
+        if (url) {
+            setButtonLoading(true, INFO_MESSAGES.FETCHING_URL);
+            try {
+                return await fetchSvgFromUrl(url);
+            } finally {
+                setButtonLoading(false);
+            }
+        }
+
+        // Try file input
+        if (fileInput.files && fileInput.files[0]) {
+            setButtonLoading(true, INFO_MESSAGES.READING_FILE);
+            try {
+                return await readSvgFile(fileInput.files[0]);
+            } finally {
+                setButtonLoading(false);
+            }
+        }
+
+        throw new Error(ERROR_MESSAGES.NO_INPUT);
+    }
+
+    /**
+     * Sets button loading state
+     */
+    function setButtonLoading(loading: boolean, message?: string) {
+        extractBtn.disabled = loading;
+        if (loading && message) {
+            extractBtn.textContent = message;
+        } else {
+            extractBtn.textContent = 'Extract Images';
+        }
+    }
+
+    /**
+     * Shows loading indicator
+     */
+    function showLoading() {
+        loadingIndicator.classList.remove('hidden');
+        imageGrid.innerHTML = '';
+        noImagesMessage.classList.add('hidden');
+        downloadAllBtn.classList.add('hidden');
+    }
+
+    /**
+     * Hides loading indicator
+     */
+    function hideLoading() {
+        loadingIndicator.classList.add('hidden');
+    }
+
+    /**
+     * Displays extracted images in the grid
+     */
+    function displayImages(images: any[]) {
+        currentImages = images;
+
+        if (images.length === 0) {
+            noImagesMessage.classList.remove('hidden');
+            imageGrid.innerHTML = '';
+            downloadAllBtn.classList.add('hidden');
+            return;
+        }
+
+        noImagesMessage.classList.add('hidden');
+
+        // Show "Download All as ZIP" button if 2+ images
+        if (images.length >= 2) {
+            downloadAllBtn.classList.remove('hidden');
+        } else {
+            downloadAllBtn.classList.add('hidden');
+        }
+
+        // Generate image cards
+        imageGrid.innerHTML = images.map((img, i) => {
+            const sizeKB = (img.size / 1024).toFixed(1);
+            return `
+                <div class="image-card bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow">
+                    <img
+                        src="${img.dataUrl}"
+                        alt="Extracted image ${i + 1}"
+                        class="w-full h-48 object-contain mb-3 bg-gray-100 rounded"
+                        loading="lazy"
+                    />
+                    <div class="text-sm text-gray-600 mb-3">
+                        <p><strong>Format:</strong> ${img.format}</p>
+                        <p><strong>Size:</strong> ~${sizeKB} KB</p>
+                    </div>
+                    <button
+                        class="download-btn w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition-colors"
+                        data-index="${i}"
+                        aria-label="Download image ${i + 1}"
+                    >
+                        💾 Download
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        // Attach download handlers to individual buttons
+        const downloadButtons = imageGrid.querySelectorAll('.download-btn');
+        downloadButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = parseInt(btn.getAttribute('data-index') || '0');
+                downloadSingleImage(currentImages[index]);
+            });
+        });
+
+        // Show success message
+        displaySuccess(SUCCESS_MESSAGES.IMAGES_EXTRACTED(images.length));
+    }
+
+    /**
+     * Main extraction handler
+     */
+    async function handleExtraction() {
+        try {
+            // Show loading state
+            showLoading();
+            results.classList.remove('hidden');
+
+            // Get SVG content
+            const svgContent = await getSvgContent();
+
+            // Extract images
+            setButtonLoading(true, INFO_MESSAGES.PARSING_SVG);
+            const images = extractImages(svgContent);
+
+            // Display results
+            displayImages(images);
+
+        } catch (error) {
+            // Handle errors
+            const message = handleError(error as Error);
+            displayError(message);
+            results.classList.add('hidden');
+        } finally {
+            hideLoading();
+            setButtonLoading(false);
+        }
+    }
+
+    /**
+     * Download all images as ZIP
+     */
+    async function handleDownloadAll() {
+        if (currentImages.length === 0) {
+            displayError(ERROR_MESSAGES.NO_IMAGES_FOUND);
+            return;
+        }
+
+        try {
+            // Show loading state on button
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.textContent = INFO_MESSAGES.GENERATING_ZIP;
+
+            // Generate ZIP
+            const zipBlob = await generateZip(currentImages, (percent: any) => {
+                downloadAllBtn.textContent = `Generating ZIP... ${percent}%`;
+            });
+
+            // Download ZIP
+            downloadBlob(zipBlob, 'extracted-images.zip');
+
+            // Success
+            displaySuccess(SUCCESS_MESSAGES.ZIP_READY);
+
+        } catch (error) {
+            const message = handleError(error as Error);
+            displayError(message);
+        } finally {
+            // Reset button
+            downloadAllBtn.disabled = false;
+            downloadAllBtn.textContent = '📦 Download All as ZIP';
+        }
+    }
+
+    // Event listeners
+    extractBtn.addEventListener('click', handleExtraction);
+    downloadAllBtn.addEventListener('click', handleDownloadAll);
+
+    // Allow Enter key to trigger extraction
+    [fileInput, urlInput, svgInput].forEach(input => {
+        input.addEventListener('keydown', (e: any) => {
+            if (e.key === 'Enter' && !extractBtn.disabled) {
+                handleExtraction();
+            }
+        });
+    });
+</script>

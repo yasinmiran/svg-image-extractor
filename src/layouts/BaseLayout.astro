@@ -1,0 +1,54 @@
+---
+/**
+ * Base layout component with HTML structure, meta tags, and SEO
+ *
+ * Provides consistent HTML head structure including meta tags,
+ * Open Graph, and Schema.org markup for all pages.
+ *
+ * @component
+ */
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content={description}>
+
+    <!-- SEO Meta Tags -->
+    <meta name="keywords"
+          content="svg image extractor, extract images from svg, svg to png, svg converter, download svg images">
+    <link rel="canonical" href="https://yourdomain.com">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title}>
+    <meta property="og:description" content={description}>
+    <meta property="og:type" content="website">
+
+    <!-- Schema.org -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SVG Image Extractor",
+        "description": description,
+        "applicationCategory": "UtilityApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0"
+        }
+    })} />
+</head>
+
+<body class="bg-gray-50 min-h-screen font-sans">
+    <slot />
+</body>
+</html>

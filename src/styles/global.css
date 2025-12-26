@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Space Grotesk', sans-serif;
+}
+
+/* Tab system using radio input technique */
+.tab-radio {
+  @apply absolute opacity-0 pointer-events-none;
+}
+
+.tab-navigation {
+  @apply flex gap-2 border-b-2 border-gray-200 mb-6;
+}
+
+.tab-button {
+  @apply flex-1 px-4 py-3 text-center cursor-pointer font-medium text-gray-600 border-b-3 border-transparent -mb-0.5 transition-all select-none;
+}
+
+.tab-button:hover {
+  @apply text-blue-600 bg-gray-50;
+}
+
+#tab-file:checked ~ .tab-navigation label[for="tab-file"],
+#tab-url:checked ~ .tab-navigation label[for="tab-url"],
+#tab-paste:checked ~ .tab-navigation label[for="tab-paste"] {
+  @apply text-blue-600 border-blue-600 bg-transparent;
+}
+
+.tab-panels {
+  @apply min-h-[150px];
+}
+
+.tab-panel {
+  @apply hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+#tab-file:checked ~ .tab-panels .tab-panel:nth-child(1),
+#tab-url:checked ~ .tab-panels .tab-panel:nth-child(2),
+#tab-paste:checked ~ .tab-panels .tab-panel:nth-child(3) {
+  @apply block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#tab-file:focus-visible ~ .tab-navigation label[for="tab-file"],
+#tab-url:focus-visible ~ .tab-navigation label[for="tab-url"],
+#tab-paste:focus-visible ~ .tab-navigation label[for="tab-paste"] {
+  @apply outline-2 outline-offset-2 outline-blue-600 rounded;
+}
+
+@media (max-width: 640px) {
+  .tab-navigation {
+    @apply flex-col gap-0;
+  }
+
+  .tab-button {
+    @apply border-b-0 border-l-3 -ml-0.5 mb-0;
+  }
+
+  #tab-file:checked ~ .tab-navigation label[for="tab-file"],
+  #tab-url:checked ~ .tab-navigation label[for="tab-url"],
+  #tab-paste:checked ~ .tab-navigation label[for="tab-paste"] {
+    @apply border-b-transparent border-l-blue-600;
+  }
+}

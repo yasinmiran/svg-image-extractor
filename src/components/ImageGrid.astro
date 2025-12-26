@@ -1,0 +1,62 @@
+---
+/**
+ * Image grid component for displaying extracted images
+ *
+ * Shows extracted images in a responsive grid with download buttons.
+ * Includes "Download All as ZIP" button when multiple images are present.
+ *
+ * @component
+ */
+---
+
+<!-- Results container -->
+<div id="results" class="hidden">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-gray-900">Extracted Images</h2>
+
+        <!-- Download All as ZIP button (shown when 2+ images) -->
+        <button
+            id="downloadAllBtn"
+            class="hidden bg-green-600 text-white py-2 px-6 rounded-md font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
+            aria-label="Download all images as ZIP"
+        >
+            📦 Download All as ZIP
+        </button>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="hidden text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <p class="mt-4 text-gray-600">Processing...</p>
+    </div>
+
+    <!-- Image grid -->
+    <div id="imageGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <!-- No images message -->
+    <div id="noImagesMessage" class="hidden text-center py-8 text-gray-500">
+        <p class="text-lg">No embedded images found in the SVG file.</p>
+        <p class="text-sm mt-2">This SVG file does not contain any base64-encoded images.</p>
+    </div>
+</div>
+
+<style>
+    /* Loading spinner animation */
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    /* Image card hover effect */
+    .image-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .image-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+</style>

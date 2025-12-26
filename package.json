@@ -2,13 +2,35 @@
   "name": "svg-image-extractor",
   "type": "module",
   "version": "0.0.1",
+  "description": "Free online tool to extract embedded images from SVG files",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yasinmiran/svg-image-extractor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yasinmiran/svg-image-extractor/issues"
+  },
+  "homepage": "https://github.com/yasinmiran/svg-image-extractor#readme",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
-    "astro": "^5.16.6"
+    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindplus/elements": "^1.0.21",
+    "astro": "^5.16.6",
+    "jszip": "^3.10.1",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@vitest/ui": "^4.0.16",
+    "jsdom": "^27.4.0",
+    "vitest": "^4.0.16"
   }
 }
