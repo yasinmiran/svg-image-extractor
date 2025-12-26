@@ -149,7 +149,3 @@ MIT License - see [LICENSE](./LICENSE) for details.
 - 🐛 [Report a bug](https://github.com/yasinmiran/svg-image-extractor/issues)
 - 💡 [Request a feature](https://github.com/yasinmiran/svg-image-extractor/issues)
 - 📖 [Read the docs](./ARCHITECTURE.md)
-
----
-
-Made with ❤️ by the community
